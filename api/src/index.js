@@ -5,13 +5,11 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-// const db = require('mysql.js');
+const crypto = require('crypto');
+const db = require('./mysql.js');
 
 // defining the Express app
 const app = express();
-
-let currentId = 0;
-let todos = [];
 
 // adding Helmet to enhance your Rest API's security
 app.use(helmet());
@@ -34,16 +32,14 @@ app.get('/', async (req, res) => {
 // POST /
 app.post('/', async (req, res) => {
     let newTodo = req.body;
-    newTodo.id = currentId++;
-    //todos.push(newTodo)
-    await db.storeItem(newTodo);
+    newTodo.id = crypto.randomUUID();
+    await db.addItem(newTodo);
     res.status(201).send(newTodo)
 });
 
 // GET /id
 app.get('/id/:id', async (req, res) => {
-    //let todo = todos.find(t => t.id == req.params.id);
-    let todo = getItem(id);
+    let todo = await db.getItem(req.params.id);
     if (!todo) {
         res.sendStatus(404)
     } else {
@@ -53,23 +49,24 @@ app.get('/id/:id', async (req, res) => {
 
 // PATCH /id
 app.patch('/id/:id', async (req, res) => {
-    let todo = todos.find(t => t.id == req.params.id);
+    let todo = await db.getItem(req.params.id);
     if (!todo) {
         res.sendStatus(404)
     } else {
         todo.description = req.body.description ?? todo.description;
         todo.completed = req.body.completed ?? todo.completed;
+        await db.updateItem(req.params.id, todo);
         res.send(todo);
     }
 });
 
 // DELETE /id
 app.delete('/id/:id', async (req, res) => {
-    let todo = todos.find(t => t.id == req.params.id);
+    let todo = await db.getItem(req.params.id);
     if (!todo) {
         res.sendStatus(404)
     } else {
-        todos = todos.filter(t => t.id != req.params.id)
+        await db.removeItem(req.params.id);
         res.sendStatus(204)
     }
 });

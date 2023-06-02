@@ -89,7 +89,7 @@ async function getItem(id) {
     });
 }
 
-async function storeItem(item) {
+async function addItem(item) {
     return new Promise((acc, rej) => {
         pool.query(
             'INSERT INTO todo_items (id, description, completed) VALUES (?, ?, ?)',
@@ -129,7 +129,7 @@ module.exports = {
     teardown,
     getItems,
     getItem,
-    storeItem,
+    addItem,
     updateItem,
     removeItem,
 };
